@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    volumes:
+      - ${HOME}/Work/aws-three-tier-web-architecture-workshop/application-code/mysqlbackup:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: dhairya@123
+      MYSQL_DATABASE: demo
+      MYSQL_USER: dhairya
+      MYSQL_PASSWORD: dhairya
+    networks:
+      - demo
+    
+  nodejs-app:
+    container_name: nodejs-app
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=dhairya
+      - DB_PWD=dhairya
+      - DB_DATABASE=demo
+      - PORT=8080
+    depends_on:
+      - mysql
+    networks:
+      - demo
+    build:
+      context: ./app-tier
+      dockerfile: Dockerfile
+
+  reactjs-app:
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nodejs-app
+    networks:
+      - frontend
+    build:
+      context: ./web-tier
+      dockerfile: Dockerfile
+
+networks:
+  demo:
+    driver: bridge
+  frontend:
+    driver: bridge
