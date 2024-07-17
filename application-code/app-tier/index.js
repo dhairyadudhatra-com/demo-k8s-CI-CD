@@ -15,9 +15,19 @@ app.use(cors());
 // ROUTES FOR OUR API
 // =======================================================
 
-//Health Checking
-app.get('/health',(req,res)=>{
-    res.json("This is the health check");
+//Liveness for k8s
+app.get('/liveness',(req,res)=>{
+    res.status(200).json({message:'Alive'});
+});
+
+//Readiness for k8s
+app.get('/readiness', async (req, res) => {
+    try {
+        await transactionService.checkDatabaseConnection();
+        res.status(200).send('Ready');
+    } catch (err) {
+        res.status(500).send('Not Ready !!');
+    }
 });
 
 // ADD TRANSACTION

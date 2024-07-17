@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backend
+  labels:
+    project: demo
+    tier: backend
+
+---
+
+#Config Map for MySQL Database Name
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-db-config
+  namespace: backend
+  labels:
+    project: demo
+    tier: backend
+data:
+  MYSQL_DATABASE: demoapp
+  BACKEND_PORT: "8080"
+  db_port: "3306"
+  db_host: mysql.db.svc.cluster.local
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-db-auth-cred
+  namespace: backend
+  labels:
+    project: demo
+    tier: backend
+type: kubernetes.io/basic-auth
+stringData:
+  username: dhairya # required field for kubernetes.io/basic-auth
+  password: CYpRE4OesbLEgCD  # required field for kubernetes.io/basic-auth
+  
+---
+
+#Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    project: demo
+    tier: backend
+  namespace: backend
+  annotations:
+    kubernetes.io/change-cause: "Initial release"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      project: demo
+      tier: backend
+  template:
+    metadata:
+      labels:
+        project: demo
+        tier: backend
+    spec:
+      containers:
+      - name: backend-container
+        image: 481918251/application-code_nodejs-app
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+        env:
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                  name: backend-db-config
+                  key: db_host
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                  name: backend-db-config
+                  key: db_port
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                  name: backend-db-auth-cred
+                  key: username
+          - name: DB_PWD
+            valueFrom:
+              secretKeyRef:
+                  name: backend-db-auth-cred
+                  key: password
+          - name: DB_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                  name: backend-db-config
+                  key: MYSQL_DATABASE
+          - name: PORT
+            valueFrom:
+              configMapKeyRef:
+                  name: backend-db-config
+                  key: BACKEND_PORT
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 200Mi
+        livenessProbe:
+          httpGet:
+            path: /liveness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 30
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: backend # Replace with your namespace
+  labels:
+    project: demo
+    tier: backend
+spec:
+  selector:
+    tier: backend # Replace with the label of your backend deployment
+  ports:
+    - protocol: TCP
+      port: 8080      # The port that the service will expose
+      targetPort: 8080 # The port on the backend pods
+  type: ClusterIP

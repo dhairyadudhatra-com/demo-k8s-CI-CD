@@ -27,6 +27,20 @@ function createTransactionsTable() {
     });
 }
 
+async function checkDatabaseConnection() {
+  return new Promise((resolve, reject) => {
+      con.ping((err) => {
+          if (err) {
+              console.error('Database connection failed:', err);
+              reject(err);
+          } else {
+              console.log('Database connection successful');
+              resolve();
+          }
+      });
+  });
+}
+
 async function addTransaction(amount, desc) {
     try {
       // Execute the query asynchronously
@@ -83,7 +97,7 @@ function deleteTransactionById(id, callback){
 }
 
 
-module.exports = {createTransactionsTable, addTransaction ,getAllTransactions, deleteAllTransactions, deleteAllTransactions, findTransactionById, deleteTransactionById};
+module.exports = {checkDatabaseConnection, createTransactionsTable, addTransaction ,getAllTransactions, deleteAllTransactions, deleteAllTransactions, findTransactionById, deleteTransactionById};
 
 
 

@@ -1,0 +1,16 @@
+Steps after running terraform main.tf 
+1 - Update config file in jump server
+2 - Modify security group of control plane to give access to jump server security group
+3 - Modify KMS ARN in sc.yml file 
+
+4 - Create LB Controller Service Account 
+5 - Install LB Controller
+`helm repo add eks https://aws.github.io/eks-charts`
+`helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=terraform-eks-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller`
+
+6 - Add all the AZs in LB in frontend-ingress file
+7 - Create a new Frontend image putting new LB DNS in env file
+8 - Deploy frontend deployment
+
+9 - Add Targets for backend, healthcheck- /liveness in targetgroup healthcheck
+10 - Allow cluster sg to port 8080 traffic from LB

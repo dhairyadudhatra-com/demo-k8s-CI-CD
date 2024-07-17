@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend
+  labels:
+    project: demo
+    tier: frontend
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: frontend
+  name: frontend-svc
+spec:
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+  type: NodePort
+  selector:
+    tier: frontend
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: back-ext-svc
+  namespace: frontend
+spec:
+  type: ExternalName
+  externalName: backend-service.backend.svc.cluster.local
+  ports:
+  - port: 8080
+    targetPort: 8080
+
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: frontend
+  name: frontend-ingress-demo
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/subnets: subnet-0a1253cd68d555c65,subnet-02ca3d8512a436fba,subnet-038e9c768500327c1
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend-svc
+              port:
+                number: 80
+        - path: /transaction
+          pathType: Prefix
+          backend:
+            service:
+              name: back-ext-svc
+              port:
+                number: 8080

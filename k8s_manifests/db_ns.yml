@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: db
+  labels:
+    project: demo
+    tier: db
+
+---
+
+#Config Map for MySQL Database Name
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-dbname-config
+  namespace: db
+  labels:
+    project: demo
+    tier: db
+data:
+  MYSQL_DATABASE: demoapp
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-basic-auth-cred
+  namespace: db
+  labels:
+    project: demo
+    tier: db
+type: kubernetes.io/basic-auth
+stringData:
+  username: dhairya # required field for kubernetes.io/basic-auth
+  password: CYpRE4OesbLEgCD
+  rootPassword: 9C3o2b5RtQCfdUX # required field for kubernetes.io/basic-auth
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  labels:
+    project: demo
+    tier: db
+  namespace: db
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp2
+  encrypted: "true"
+  kmsKeyId: "arn:aws:kms:us-west-2:264745370841:key/98da2b48-3e71-4f83-a546-8fd95c5fd93e"
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    project: demo
+    tier: db
+  namespace: db
+spec:
+  selector:
+    matchLabels:
+      project: demo
+      tier: db
+  serviceName: "mysql"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        project: demo
+        tier: db
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:latest
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-basic-auth-cred
+                  key: rootPassword
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-basic-auth-cred
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-basic-auth-cred
+                  key: password
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-dbname-config
+                  key: MYSQL_DATABASE
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1000Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage
+      labels:
+        project: demo
+        tier: db
+      namespace: db
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: ebs-sc
+
+---
+
+#Write k8s manifest file for Mysql statefulset and headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: db
+  labels:
+    project: demo
+    tier: db
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    tier: db
+  clusterIP: None

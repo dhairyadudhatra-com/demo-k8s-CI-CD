@@ -16,8 +16,8 @@ services:
     
   nodejs-app:
     container_name: nodejs-app
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
@@ -39,10 +39,16 @@ services:
       - "3000:3000"
     depends_on:
       - nodejs-app
+    # environment:
+    # - REACT_APP_BACKEND_APP_HOST=nodejs-app
+    # - REACT_APP_BACKEND_APP_PORT=8080
     networks:
-      - frontend
+      - demo
     build:
       context: ./web-tier
+      args: 
+        REACT_APP_BACKEND_APP_HOST: ${REACT_APP_BACKEND_APP_HOST}
+        REACT_APP_BACKEND_APP_PORT: ${REACT_APP_BACKEND_APP_PORT}
       dockerfile: Dockerfile
 
 networks:

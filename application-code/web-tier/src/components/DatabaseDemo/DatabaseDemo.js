@@ -4,6 +4,9 @@
 
     class DatabaseDemo extends Component {
      
+        host = "";
+        port = "";
+
         constructor(props) {
             super(props) //since we are extending class Table so we have to use super in order to override Component class constructor
             this.handleTextChange = this.handleTextChange.bind(this);
@@ -21,7 +24,9 @@
           }
 
         populateData(){
-            this.fetch_retry('http://localhost:8080/transaction',3)
+            
+            // this.fetch_retry(`http://${process.env.REACT_APP_BACKEND_APP_HOST}:${process.env.REACT_APP_BACKEND_APP_PORT}/transaction`,3)
+            this.fetch_retry(`http://${process.env.REACT_APP_BACKEND_APP_HOST}/transaction`,3)
             .then(res => res.json())
             .then((data) => {
               this.setState({ transactions : data.result });
@@ -59,7 +64,7 @@
            const requestOptions = {
                method: 'DELETE'
            }
-           fetch('http://localhost:8080/transaction', requestOptions)
+           fetch(`http://${process.env.REACT_APP_BACKEND_APP_HOST}/transaction`, requestOptions)
            .then(response => response.json())
            .then(data => this.populateData())
 
@@ -75,8 +80,9 @@
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({"amount":this.state.text_amt, "desc" :this.state.text_desc})
             }
+            console.log(`http://${process.env.REACT_APP_BACKEND_APP_HOST}/transaction`);
             
-            fetch('http://localhost:8080/transaction', requestOptions)
+            fetch(`http://${process.env.REACT_APP_BACKEND_APP_HOST}/transaction`, requestOptions)
             .then(response => response.json())
             .then(data => this.populateData())
             

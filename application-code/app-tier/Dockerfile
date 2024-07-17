@@ -16,19 +16,6 @@ RUN apt-get update && apt-get install -y netcat
 # Copy the rest of the application code
 COPY . .
 
-# RUN npm run build
-
-# # Use a smaller base image for the production stage
-# FROM node:lts-bullseye-slim AS production
-
-# WORKDIR /app
-
-# # Copy only the necessary files from the build stage
-# COPY --from=build /app /app
-
-# Install netcat for the wait-for-it script
-RUN apt-get update && apt-get install -y netcat
-
 #Exec Permission
 RUN chmod +x wait-for-it.sh
 
