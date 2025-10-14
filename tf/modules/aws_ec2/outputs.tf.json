@@ -1,0 +1,24 @@
+{
+  "output": {
+    "arn": {
+      "description": "ARN of the EC2 instance.",
+      "sensitive": false,
+      "value": "${aws_instance.this.arn}"
+    },
+    "instance_id": {
+      "description": "ID of the EC2 instance.",
+      "sensitive": false,
+      "value": "${aws_instance.this.id}"
+    },
+    "instance_private_ip": {
+      "description": "Private IP address of the EC2 instance.",
+      "sensitive": false,
+      "value": "${aws_instance.this.private_ip}"
+    },
+    "instance_public_ip": {
+      "description": "Public IP address of the EC2 instance.",
+      "sensitive": false,
+      "value": "${aws_instance.this.public_ip}"
+    }
+  }
+}
