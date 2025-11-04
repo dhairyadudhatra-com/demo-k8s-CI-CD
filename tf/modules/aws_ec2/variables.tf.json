@@ -1,0 +1,83 @@
+{
+    "variable": {
+      "tags": [
+        {
+            "description": "A map of tags to add to all resources",
+            "type": "map(string)",
+            "nullable": true
+        }
+      ],
+      "ami": [
+        {
+          "type": "string",
+          "description": "ID of the AMI to use.",
+          "nullable": false
+        }
+      ],
+      "instance_type": [
+        {
+          "type": "string",
+          "description": "Type of instance to use. See https://aws.amazon.com/ec2/instance-types/ for available instance types.",
+          "nullable": false
+        }
+      ],
+      "security_group_ids": [
+        {
+            "type": "list(string)",
+            "description": "List of security group IDs to associate with the launch template"
+        }
+      ],
+      "key_name": [
+        {
+          "type": "string",
+          "description": "Name of the SSH key to use.",
+          "nullable": false
+        }
+      ],
+      "subnet_id": [
+        {
+          "type": "string",
+          "description": "ID of the subnet to deploy the EC2 instance",
+          "nullable": false
+        }
+      ],
+      "root_volume_type": [
+        {
+          "type": "string",
+          "description": "Type of root volume (e.g., gp2, io1)",
+          "default": "gp2",
+          "nullable": false
+        }
+      ],
+      "root_volume_size": [
+        {
+          "type": "number",
+          "description": "Size of root volume in GB",
+          "default": 30,
+          "nullable": false
+        }
+      ],
+      "root_volume_encrypted": [
+        {
+          "type": "bool",
+          "description": "Whether to encrypt root volume",
+          "default": true,
+          "nullable": false
+        }
+      ],
+      "enable_public_ip":[
+        {
+            "type": "bool",
+            "default": false
+        }
+      ],
+      "user_data": [
+        {
+          "type": "string",
+          "description": "Paste your bash script here without encoding or EOF marker. Updates to this field will trigger a stop/start of the EC2 instance by default. We don't support built-in functions to reference files yet !",
+          "nullable": true,
+          "default": null
+        }
+      ]
+    }
+  }
